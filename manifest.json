@@ -1,0 +1,19 @@
+{
+    "name": "Fix Scroll Node Docs",
+    "version": "1.0.1",
+    "description": "Fix URL Fragment Navigation on Node Docs/Api",
+    "manifest_version": 3,
+    "author": "Kev T",
+    "permissions": [
+        "webNavigation"
+    ],
+    "content_scripts": [
+        {
+            "matches": ["https://nodejs.org/api/*" ],
+            "js": ["content_script.js"]
+        }
+    ]
+}
+
+
+
