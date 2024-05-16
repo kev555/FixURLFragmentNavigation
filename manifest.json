@@ -3,21 +3,24 @@
     "version": "1.0.1",
     "description": "Fix URL Fragment Navigation on Node Docs/Api",
     "manifest_version": 3,
+    "host_permissions": ["<all_urls>"],
+
     "author": "Kev T","action": {
         "default_popup": "index.html",
         "default_title": "Settings"
     },
     "options_page": "options.html",
     "permissions": [
+        "activeTab",
+        "scripting",
         "webNavigation",
-        "storage"
+        "storage",
+        "tabs"
     ],
-    "content_scripts": [
-        {
-            "matches": ["https://nodejs.org/api/*" ],
-            "js": ["content_script.js"]
-        }
-    ],
+    "content_scripts": [{
+      "js": ["content_script.js"],
+      "matches": ["http://*/*", "https://*/*"]
+     }],  
     "background": {
         "service_worker": "service_worker.js",
         "type": "module"

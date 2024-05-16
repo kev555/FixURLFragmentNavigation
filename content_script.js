@@ -1,30 +1,33 @@
 
 
-// chrome.storage.local.get doesn't return a promise automatically. Promisify it:
 function getData(){
     return new Promise((resolve, reject) => {
-        chrome.storage.local.get( ["disScrollResOpt", "enPreScrollOpt"], function(items) {
+        chrome.storage.local.get("urls", function(items) {
             if (items){resolve(items)}
             else(reject)
         });
     })
 };
 
+
+console.log("huuuuhhhhhhhhhhhhhhhhhhhh???? content script");
+
+// chrome.storage.local.get returns a promise automatically 
+
 async function startProg(){
+
+
     var items = await getData();
+    
+    items = items["urls"];
 
     var disScrollResOpt = false;
     var enPreScrollOpt = false;
     disScrollResOpt = items["disScrollResOpt"];
     enPreScrollOpt = items["enPreScrollOpt"];
 
-    console.log('Settings retrieved', disScrollResOpt, enPreScrollOpt);
-
-
-    console.log('testttt');
-
+    // disable scroll restoratioin
     if (disScrollResOpt){
-        // disable scroll restoratioin
         if ('scrollRestoration' in history) {
             history.scrollRestoration = 'manual';
         }
@@ -65,5 +68,4 @@ async function startProg(){
     }
 };
 
-startProg();
-
+// startProg();

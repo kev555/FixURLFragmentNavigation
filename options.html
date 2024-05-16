@@ -2,59 +2,59 @@
 <html>
   <head>
     <title>My Test Extension Options</title>
-    <link rel="stylesheet" type="text/css" href="styles.css">
-
     <style>
-
-
-body {
-    font-family: Arial, sans-serif;
-    font-size: large;
-    background-color: #f2f2f2;
-    margin: 0;
-    padding: 20px;
-  }
-  
-  label {
-    display: block;
-    margin-bottom: 10px;
-  }
-  
-  button {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: #fff;
-  }
-  
-  button:hover {
-    background-color: #0056b3;
-  }
-  
-  #statusToast {
-    background-color: #ffc107;
-    color: #856404;
-  }
-  
-  
+      body {
+        font-family: Arial, sans-serif;
+        font-size: large;
+        background-color: #f2f2f2;
+        margin: 0;
+        padding: 20px;
+      }
+      label {
+        display: block;
+        margin-bottom: 10px;
+      }
+      button {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: #fff;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      #statusToast {
+        background-color: #ffc107;
+        color: #856404;
+      }
     </style>
-
   </head>
+
   <body>
-    <br><br>
-    For the best result tick both boxes.
-    <br><br>
-    <label>
-      <input type="checkbox" id="disScrollResOpt" />
-      Disable Chrome's Auto Scroll Restoration
+    <form id="myForm">
+      <br><br>
+      Selecting *Disable Chrome's Automatic Scroll Restoration* will probably fix your issue. </br>
+      If not, select also *Enable Manual Pre Scrolling*, however this will take a small bit of processing time before the page is ready.
+      </br> </br>
+      <label for="textInput">Enter a URL:</label>
+      <input type="text" id="urlString" maxlength="100" required>
+      </br> </br>
+      <label for="checkbox1">
+      <input type="checkbox" id="disAutoScroll" name="checkbox1">
+      Disable Chrome's Automatic Scroll Restoration 
     </label>
-    <label>
-      <input type="checkbox" id="enPreScrollOpt" />
-      Enable Manual Auto Pre Scrolling
+      
+      <label for="checkbox2">
+      <input type="checkbox" id="enPreScroll" name="checkbox2">
+      Enable Manual Pre Scrolling
     </label>
+      
+    <button id="save" type="button">Save</button>
+    </form>
 
     <div id="statusToast"></div>
-    
-    <button id="save">Save</button>
+    </br> </br>
+    List of curently saved URLs:</br></br>
+    <div id="listOfSaved"></div>
 
     <script src="options.js"></script>
   </body>
