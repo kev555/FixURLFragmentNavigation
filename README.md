@@ -1,67 +1,62 @@
 
 # FixURLFragmentNavigation
+# Chomre extension to fix anchor navigation / scrolling problems.
 
-Chomre extension to fix scrolling problems
+## Problem Description and Diagnosis
 
-URL Fragment Navigation uses '#' in an HTMLAnchorElement to scroll the user to a specific part of a webpage when they open a link wit a # in it.
+### Fragment naviation Problem:
+
+URL Fragment Navigation uses '#' in an HTMLAnchorElement to scroll the user to a specific part of a webpage when they open a link with a # in it.
 https://developer.mozilla.org/en-US/docs/Web/API/HTMLAnchorElement/hash
 
-I found some webpages which use this do not sroll to the correct place.
-This has been frustrating as it affect the Node API docs.
-It seems to be cause by the page not being loaded into the memory of the browser or browser tab until the user has scrolled over it.
-It seems that some sections of the webpage only load when scrolled into the viewport.
-One common cause could be "lazyloading of images", but there are no imgaes on this page. Checking networking montioring I see no additional fetch/xhr requests while manually scrolling. However the scoll bar is clearly getting smaller so more text is filling out one way or anoher.
-This makes the scoll action when clicking a hash anchor fall too short or too long, because the size of the webpage is changing during the scroll action itself.
+I've encountered some webpages that use this feature which do not scroll to the correct place.
+The naviagtion jumps multiple paragraphs / sections before or after the position of the intended anchor.
+Most notably the official NodeJS docs have this issue on Chrome.
 
-Or sometimes caused by chrome automatically restoring previous scroll position, ignoring the archor in the requested URl.
+To replicat go to a section such as: https://nodejs.org/api/http.html. 
+And then click one of the navigation links such as Class: http.ClientRequest or Class: http.Server.
+It will jump usually to multiple sections before the target.
+I've personally found this very frustrating while using using and learning the api.
 
-Some of the cases can be solved simply by truning off "Scroll Restoration":
+The issue seems to be caused by the page not being loaded into the memory of the browser / tab until the user has scrolled over it.
+I assume some sections of the page load into memory only when scrolled into the viewport.
+One common cause may be "lazyloading of images", but the issue happens on pages with no images also.
+Checking networking montioring I see no additional fetch/xhr requests while scrolling.
+The scroll bar does get smaller while scrolling so it's clear more content is being added to the view while scrolling.
+
+This solution I've found is to implement a "Pre Scrolling" feature which quickly scrolls the entire page when it is first opened, 
+This forces all elements to load into the viewport, which then ensures that clicking an archor brings the users to the correct place.
+This feature takes less than 500ms. COuld be shortened.
+
+
+### Scroll Restoration: problem:
+
+An additional webpage I found that has scolling issues is: 
+https://naninovel.com/guide/naninovel-scripts#visual-editor
+
+Upon testing this problem was actually caused by Chrome's "Scroll Restoration" feature.
 https://developer.chrome.com/blog/history-api-scroll-restoration
 
-However when it is caused by the page not being fully loaded into memory it's a more involved solution.
-This solution I've found is to quickly pre scroll the entire page forcing all elements quickly load (<500ms).
-This combined with disabling Chromes Scroll Restoration seems to fix everything.
+This can be solved simply by turning off "Scroll Restoration".
 
-Additional webpages I found that have scolling issues:
-Problem caused by Scroll Restoration: https://naninovel.com/guide/naninovel-scripts#visual-editor
--
-
-
-
-TO DO / ISSUES:
+## Extension features
+- Allow user to turn off "Scroll Restoration" for specific sites.
+- Allow user to turn on "Pre Scrolling" feature for specific sites.
+- Create an editable list of URLs and their scroll options in the Options page.
 
 
 
-// After testing onCreated it doesn't fire for re-navigating already loaded pages and page refreshs (I think - test and clarify refresh)
-// ouUpdated does fire for both these cases. However, the way I'm currently using it is possibly not very efficent:
+## TO DO / ISSUES:
 
-// Possible issues:
-// Every time the page finishes updating (eg. scrolling to a new section (automatically or manually)) the injectFunc runs.
-// This includes a db call and checking all properties for the webpages URL, even if checked previously for the same webpage. 
-// This will possibly mean multiplpe runs for pages that use lazy loading or maybe autoplay sites like soundcloud or youtube shorts.
+ouUpdated fires for many cases, currently usage could probably be more efficent. Every time the page finishes updating (eg. scrolling to a new section (automatically or manually)) the injectFunc runs. This includes a db call and checking all properties for the webpages URL, even if checked previously for the same webpage. This will possibly mean multiplpe runs for pages that use lazy loading or maybe autoplay sites like soundcloud or youtube shorts. Additionally it's unnecessarily re-scrolling the whole page just for re-navigation with the same page
+-> much improved by using webNavigation.onCompleted and "outermost_frame"
 
-// Additionally it's unnecessarily re-scrolling the whole page just for re-navigation with the same page
-// if a page is already fully scrolled and loaded, no need to scroll again
-
-// Also the tab is currently processing the scrolling in the background (when opened in the background) and then re scrolling again when user switches to it (becomes active tab)
-
-// Ideally it could check if a new tab is in the list of user sites once at the start using onCreated then use ouUpdated for everything afterwards.
-// But there is a lot of unknown situations that might cause problems, espically with how I am removing and re adding of the onUpdated listener while the scrolling is happening
-
-// Also possible would be to use onActivated to avoid processing the tab in the background and only process it when activated.
-// But how would thins work for re-scrolling and for refreshes?
-// Seem I wold have to be doing multiple checks within listeners and blocking some of all of other based on situations.
-// For now the logic works although not perfectly efficent. But to make it perfectly efficent feels like it will be very complex
-// How efficent does it need to be? It's just scrolling a page... 
-
-// webNavigation.onHistoryStateUpdated might be another solution .. need a fair bit of fiddling to test most efficent solution....
+Also the tab is currently processing the scrolling in the background (when opened in the background) and then re scrolling again when user switches to it (becomes active tab)
+-> using webNavigation.onCompleted  and "outermost_frame" also works in the background but doesn't re scroll when the tab becomes active - perfect.
 
 
-
-// TO DO;
-
-// add support for www. sub domain as not supported yet becasue the js URL interface rips it out - should be easy fix
-// remove need for user to enter http or https while adding a record in the options page (js URL interface parsing requires http to parse, but no need for the user to need to enter this..)
-// video of before and after scrolling and navigating around the Node docs to show the drastic improvvment...
-// use destructuring the .get and use an object literal for .set, inteased of wrapping them with outer objects
-
+- Add support for www. sub domain as not supported yet becasue the js URL interface rips it out - easy fix
+- Remove need for user to enter http or https while adding a record in the options page (js URL interface parsing requires http to parse, but no need for the user to need to enter this..) - easy fix
+- use destructuring the .get and use an object literal for .set, inteased of wrapping them with outer objects - easy fix
+- video of before and after scrolling and navigating around the Node docs to show the drastic improvevment...
+- More testing incl. testing for problems of the interaction when both options are enabled.

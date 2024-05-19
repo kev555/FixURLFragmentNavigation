@@ -5,7 +5,6 @@ console.log("service worker ran");
 async function injectFunc(tab)
 {
     let allUrls = "not_undefined";
-
     try {
         allUrls = await chrome.storage.local.get("urls");   // resolves to results object if successful
     } 
@@ -20,74 +19,58 @@ async function injectFunc(tab)
         console.log("no records found");
     }
     else {                                                  // results object returned
-        
         allUrls = allUrls["urls"]; // extract the urls records object
-        console.log("allUrls : ", allUrls);
+        //console.log("allUrls : ", allUrls);
         
         var url = new URL(tab.url);
         var hostname = url.hostname;
         
         if (allUrls.hasOwnProperty(hostname)) {  // grab the record
-            
-            console.log("URL found!");
 
+            console.log("URL found!");
             var hostOptions = allUrls[hostname];
 
             chrome.scripting.executeScript({
                 args: [hostOptions[0], hostOptions[1]],
-                target: { tabId: tab.id, allFrames: true, },
+                target: { tabId: tab.tabId, allFrames: true, },
                 func: startProg,
             });
-
-            // try {
-            //     chrome.scripting.executeScript({
-            //         //args: ["disScrollResOpt", "enPreScrollOpt"],
-            //         target: { tabId: tab.id, allFrames: true, },
-            //         func: startProg,
-            //     });
-            // } catch (err) {
-            //     console.log("failed to execute script : ", err);
-            // }
         }
 
     }
 };
 
-chrome.tabs.onUpdated.addListener( async function myListener(tabId, changeInfo, tab) {
-    console.log("onUpdate fired");
-    // will fire 5 times for a newly opened tab, and 3 times for a refresh of current activetab
-    
-    if (changeInfo.status == "complete"){
-        console.log("changeInfo.status == complete"); // also log: changeInfo.url, tab.url
-        // will fire once for new tab and once for a reload, and only after the page has fully loaded
-        
-        // onUpdate keeps runuing everytime the page scrolls, causeing 5x the amount of scrolls to be run
-        // So needed to remove the listener, wait a little bit for the scrolling to complete, then re-add it, 
-        // however the inject function was running asynchronously, so needed to convert to async and await it
+// chrome.webNavigation.onCompleted.addListener( (details) => {
+//         console.log("nav completed: ", details);
+// });
+// this is firing for every frame in the page, even a blank new tab in chrome has 3 frames
+// there is frameType: "sub_frame" and frameType: "outermost_frame", 
+// seems the outermost_frame just fires once so should be fine to simple filter by this
+// Also it does not fire at all for a in-page renaivigation like onUpdated does,
+// so re-scrolling doesn't occur so there is no need for removing / re addind listener.
 
-        chrome.tabs.onUpdated.removeListener(myListener); 
-        // this removes the listener of the entire background worker!! not just this run of it!!!
-        // the background script only runs once, you must set all appropriate listeners at run time.
-        
-        await injectFunc(tab);
-        console.log("should be synchronous now");
+// chrome.webNavigation.onCommitted.addListener( (details) => {
+//     if(details.transitionType == "reload"){
+//         console.log("reload")
+//     };
+// });
+// this works well, no mis-triggers.
+// but what is the use case? ie in what situations will the user want to reload
+// should the reload jump back to where the user has scrolled to in the page or to where the url anchor is?
+// also what if they have selected to disable chrome scroll restoration?
 
-        setTimeout(() => {
-            console.log("timeout complete");
-            chrome.tabs.onUpdated.addListener(myListener); // wait 3s then re-add the listener
-        }, 3000);
-    }
+// Actually webNavigation.onCompleted also fires for a reload, whic is not ideal
+// Could possibly use onCommitted details.transitionType = reload to cacel out onCompleted's reload trigger
+
+
+chrome.webNavigation.onCompleted.addListener( async (details) => {
+    if (details.frameType == "outermost_frame"){
+        await injectFunc(details);
+    };
 });
 
-
-// Added fucntionalilty to allow adding many websites to the options page with specific settings for each. 
-// Changed from a content script to a service worker, which is injected in user defined websites
-
-// this function moved from content script
 function startProg(disScrollResOpt = false, enPreScrollOpt = false){
-
     // document.body.style.backgroundColor = 'blue';
-    // console.log("check 1", disScrollResOpt, enPreScrollOpt);
 
     // disable scroll restoratioin
     // this uses only the Window.history part of the standarized js Web API, so will work across browsers easily
@@ -100,8 +83,7 @@ function startProg(disScrollResOpt = false, enPreScrollOpt = false){
         }
     }
     
-    // enable pre scroll
-    // again this only uses Web API
+    // enable pre scroll, again this only uses Web API, no manifest permissions needed for this specifically
     if (enPreScrollOpt){
         // enable manual pre scrolling
         var height = document.body.scrollHeight;
@@ -141,6 +123,9 @@ function startProg(disScrollResOpt = false, enPreScrollOpt = false){
 };
 
 
+
+//////
+
 // chrome.tabs.onCreated.addListener((tab) => { console.log("working") });
 // Don't use this as the onCreated event might not get the new URL string ("the tab's URL may not be set at the time this event fired")
 
@@ -163,6 +148,30 @@ function startProg(disScrollResOpt = false, enPreScrollOpt = false){
 // status - Optional - string.  The status of the tab. Can be either loading or complete.
 // url - Optional - string.     The tab's URL, if it has changed.
 ///////////////
+
+
+// chrome.webNavigation.onCreatedNavigationTarget.addListener(function lala3(details){
+
+//     console.log("created navigation target (can be tab OR window)");
+
+// });
+// Only fires from:
+// right click -> new tab
+// right click -> new window
+
+// does not fire from a link that opens in the same active tab
+// does not fire from manually opening a tab/window
+// does not fire from opening a bookmark, even in a new tab
+// not very useful
+
+
+// chrome.tabs.onActivated.addListener(function lala2(){
+
+//     console.log("tab activated");
+
+// });
+// This seems to work well but scrolling will not be able to happen in the background,
+// ie if a user opens a page in a new tab in advance before navigating to it
 
 
 
