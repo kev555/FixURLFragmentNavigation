@@ -10,8 +10,7 @@ async function listURLs(){
     let allUrls = "not_undefined";
     try {
         allUrls = await chrome.storage.local.get("urls");   // resolves to results object if successful
-        
-        // console.log("1111", allUrls); // will { urls } destructure allUrls["urls"] properly here?? - test
+        // destructure with { urls }? - NO - I want to check for undefined saftely!
 
         if (allUrls === undefined){  // if nothing found
             console.log(" -> 'Managed storage is not set'.. I think you need to add 'storage' to manifest permissions");

@@ -16,19 +16,24 @@ async function injectFunc(tab)
     } else if (Object.keys(allUrls).length === 0) {         // empty object = no records
         console.log("no records found");
     } else {                                                // results object returned
-        // extract the urls records object
-        allUrls = allUrls["urls"];
-        //console.log("allUrls : ", allUrls);
+        
+        allUrls = allUrls["urls"]; // extract urls records object
         
         var url = new URL(tab.url); // this parsing shouldn't ever fail because it's coming directly from the tab... right?
         var hostname = url.hostname;
 
+        console.log("hostname!!!!! : ", hostname);
+
         // remove "www." subdomain if present
-        if (hostname.slice(0, 3) === "www") {
-            hostname = hostname.slice(3, hostname.length);
+        if (hostname.slice(0, 4) === "www.") {
+            hostname = hostname.slice(4, hostname.length);
         };
 
-        runProg(hostmane);
+        console.log("hostname!!!!! : ", hostname);
+
+        if (allUrls.hasOwnProperty(hostname)) {
+            runProg(hostname);
+        }
 
         function runProg(hostname){
             console.log("URL found!");
