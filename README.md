@@ -48,7 +48,9 @@ This can be solved simply by turning off "Scroll Restoration".
 
 ## TO DO / ISSUES:
 
-~~ouUpdated fires for many cases, currently usage could probably be more efficent. Every time the page finishes updating (eg. scrolling to a new section (automatically or manually)) the injectFunc runs. This includes a db call and checking all properties for the webpages URL, even if checked previously for the same webpage. This will possibly mean multiplpe runs for pages that use lazy loading or maybe autoplay sites like soundcloud or youtube shorts. Additionally it's unnecessarily re-scrolling the whole page just for re-navigation with the same page. Also the tab is currently processing the scrolling in the background (when opened in the background) and then re scrolling again when user switches to it (becomes active tab) ~~ -> much improved by using webNavigation.onCompleted with "outermost_frame", also doesn't re-scroll when the tab becomes active - perfect.
+ - ~~Updated fires for many cases, currently usage could probably be more efficent. Every time the page finishes updating (eg. scrolling to a new section (automatically or manually)) the injectFunc runs. This includes a db call and checking all properties for the webpages URL, even if checked previously for the same webpage. This will possibly mean multiplpe runs for pages that use lazy loading or maybe autoplay sites like soundcloud or youtube shorts. Additionally it's unnecessarily re-scrolling the whole page just for re-navigation with the same page. Also the tab is currently processing the scrolling in the background (when opened in the background) and then re scrolling again when user switches to it (becomes active tab)~~
+
+-> much improved by using webNavigation.onCompleted with "outermost_frame", also doesn't re-scroll when the tab becomes active - perfect.
 
 - Add features to the Options page: delete a url, edit a url, delete all records. It overwrites by default, so clicking edit should simply fill the html form with the details, not a lot of extra logic needed for edit
 - ~~Add support for www sub domain as not supported yet becasue the js URL interface rips it out - easy fix~~
