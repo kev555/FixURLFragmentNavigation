@@ -1,31 +1,4 @@
 
-// storage.local.get(keys) - weird behaviour difficult to understand:
-// You can't try to grab the entire object ie. "chrome.storage.local.get("allObjects")" - it won't work
-// Chrome takes the object and stores the key value pairs individually, not the object itself
-// So if you want to store multiple seperate objects you would need to wrap them like: allObjects: {all_urls: all_urls_data, other_object: other_object_data}
-// Then you can do: chrome.storage.local.get("all_urls") - to get back an object: {all_urls: all_urls_data}
-
-
-// From the mozilla documents for browser.storage.local.get()'s arguments:
-// keys: A key (string) or keys (an array of strings, or an object specifying default values) to identify the item(s) to be retrieved from storage. 
-// "object specifying default values" -- I was trying to use an object that didn't spicify default values - bugs were v. confusing!
-
-// If you pass an empty object or [empty?] array here, an empty object will be retrieved.
-
-// If you pass null, or an undefined value, the entire storage contents will be retrieved.
-// SO if you want the entire contents of the chrome storage object (ie. allObjects) use: chrome.storage.local.get(null), this will return: 
-// {all_urls: all_urls_data, other_object: other_object_data}
-
-
-// So my data structure when saving a new url will be:
-// allObjects will be a js object of which the first key / value pair will be:
-// key: "urls", value: a sub-object 
-// this sub-object will contain all the url records as keys value pairs.
-// each key of the sub-object will be the url as a string (without "http:" / "https:"). 
-// each value of the sub-object will be the options as an array - [boolean, boolean]
-// individual url records can then be retrived using the url as a string (without "http:" / "https:")
-// so simply: allUrls = chrome.storage.local.get("urls") 
-// then: allUrls["example.com"]
 
 async function listURLs(){
     // browser.storage.local.get('keys')'s return value:
@@ -35,14 +8,10 @@ async function listURLs(){
     // If managed storage is not set, undefined will be returned.
 
     let allUrls = "not_undefined";
-
-
-    console.log(" -> 'Managed storage is not set'.. I think you need to add 'storage' to manifest permissions");
-    console.log(" -> 'Managed storage is not set'.. I think you need to add 'storage' to manifest permissions");
-
     try {
         allUrls = await chrome.storage.local.get("urls");   // resolves to results object if successful
-        console.log("1111", allUrls); // will { urls } destructure allUrls["urls"] properly here?? - test
+        
+        // console.log("1111", allUrls); // will { urls } destructure allUrls["urls"] properly here?? - test
 
         if (allUrls === undefined){  // if nothing found
             console.log(" -> 'Managed storage is not set'.. I think you need to add 'storage' to manifest permissions");
@@ -69,18 +38,20 @@ async function listURLs(){
 
 async function saveNewURL() {
 
-    function toastSuccess(){
+    function toastMessage(newMessage, shouldClear = true){
         // toast success message and reset all fields
         let status = document.getElementById('statusToast');
         let urlString = document.getElementById('urlString');
         let disAutoScroll = document.getElementById('disAutoScroll');
         let enPreScroll = document.getElementById('enPreScroll');
 
-        status.textContent = 'Url saved';
-        disAutoScroll.checked = false;
-        enPreScroll.checked = false;
-        urlString.value = '';
-        
+        if (shouldClear){
+            disAutoScroll.checked = false;
+            enPreScroll.checked = false;
+            urlString.value = '';
+        }
+
+        status.textContent = newMessage;
         setTimeout(() => { status.textContent = ''; }, 1000);
     };
 
@@ -97,30 +68,65 @@ async function saveNewURL() {
     let enPreScroll = document.getElementById('enPreScroll').checked;
 
     try {
-        let setNewUrlCheck = "not_undefined";
+        var isParsable = false;
+        var correctProtocol = false;
 
-        let urlObj = new URL(urlString); // causing some problems
-
-        let allUrls = await chrome.storage.local.get("urls");
-        // resolves to results object if successful, an empty object if no records
-        // result won't be: {url123: [true, false], url456: [true, false]}, rather: {urls: {url123: [true, false], url456: [true, false]}}
-        // could destructure like: "let { urls } = await ..." if necessary
-
-        // add a "urls" sub-object if it doesn't already exist (ie. no records saved yet), to avoid trying to access an undefined object later
-        if (allUrls["urls"] == undefined){ allUrls["urls"] = {}; }
-        allUrls["urls"][urlObj.hostname] = [disAutoScroll, enPreScroll];  // add the url record to the "urls" sub-object
+        if (!URL.canParse(urlString)){
+            urlString = "https:" + urlString;
+            if (!URL.canParse(urlString)){
+                toastMessage("the URL string is malformed", false);
+            } else {
+                isParsable = true;
+            }
+        } else {
+            isParsable = true;
+        }
+        console.log("parsable check passed, check protocol next: ");
         
-        setNewUrlCheck = await chrome.storage.local.set(allUrls);         // set the sub-object into the chrome storage object
-        // .set takes "An object containing one or more key/value pairs to be stored. If an item is in storage, its value is updated" ("urls" is the key)
-        // again, this will pull {"urls": allURLsRetrieved} out of allObjects and store it as a key object pair in the chrome storage object
+        var urlObj = new URL(urlString);
+        console.log(999, urlObj.protocol);
+        
+        // check if they evener an unsupported protocol suc as ftp://
+        if (urlObj.protocol !== "http:" && urlObj.protocol !== "https:") {
+            toastMessage("only http or https protocols allowed", false);
+        } else {
+            correctProtocol = true;
+        }
 
-        console.log("setNewData result (undefined == success.): ", setNewUrlCheck); // "undefined" = success.
-        if (setNewUrlCheck === undefined){ toastSuccess(); }
-    }
-    catch (err) {
-        console.log("err with .set:", err)
+        if (isParsable && correctProtocol){
+            console.log("attempting to add the URL");
+            await tryToAdd(urlObj);
+        }
+
+    } catch (err) {
+        console.log("error with parsing the URL entered: ", err)
     }
 
+    async function tryToAdd()
+    {
+        try {
+            let allUrls = await chrome.storage.local.get("urls");
+            // resolves to results object if successful, an empty object if no records
+            // result won't be: {url123: [true, false], url456: [true, false]}, rather: {urls: {url123: [true, false], url456: [true, false]}}
+            // could destructure like: "let { urls } = await ..." if necessary
+
+            // add a "urls" sub-object if it doesn't already exist (ie. no records saved yet), to avoid trying to access an undefined object later
+            if (allUrls["urls"] == undefined){ allUrls["urls"] = {}; }
+            allUrls["urls"][urlObj.hostname] = [disAutoScroll, enPreScroll];  // add the url record to the "urls" sub-object
+
+            let setNewUrlCheck = "not_undefined";
+            setNewUrlCheck = await chrome.storage.local.set(allUrls);         // set the sub-object into the chrome storage object
+            // .set takes "An object containing one or more key/value pairs to be stored. If an item is in storage, its value is updated" ("urls" is the key)
+            // again, this will pull {"urls": allURLsRetrieved} out of allObjects and store it as a key object pair in the chrome storage object
+
+            console.log("setNewData result (undefined == success.): ", setNewUrlCheck); // "undefined" = success.
+            if (setNewUrlCheck === undefined){ toastMessage('Url saved', true); }
+
+        } catch (err) {
+            console.log("err with adding record to local db (storage.local.set):", err)
+        }
+    }
+    
     listURLs();
 };
 

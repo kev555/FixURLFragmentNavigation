@@ -55,8 +55,15 @@ Also the tab is currently processing the scrolling in the background (when opene
 -> using webNavigation.onCompleted  and "outermost_frame" also works in the background but doesn't re scroll when the tab becomes active - perfect.
 
 
-- Add support for www. sub domain as not supported yet becasue the js URL interface rips it out - easy fix
-- Remove need for user to enter http or https while adding a record in the options page (js URL interface parsing requires http to parse, but no need for the user to need to enter this..) - easy fix
+- Add features to the Options page: delete a url, edit a url, delete all records. It overwrites by default, so clicking edit should simply fill the html form with the details, not a lot of extra logic needed for edit -
+- ~~Add support for www. sub domain as not supported yet becasue the js URL interface rips it out - easy fix~~
+  done
+- ~~Remove need for user to enter http or https while adding a record in the options page (js URL interface parsing requires http to parse, but no need for the user to need to enter this..) - easy fix~~
+  done
 - use destructuring the .get and use an object literal for .set, inteased of wrapping them with outer objects - easy fix
 - video of before and after scrolling and navigating around the Node docs to show the drastic improvevment...
-- More testing incl. testing for problems of the interaction when both options are enabled.
+- More testing including testing for problems of the interaction when both options are enabled.
+
+- add strikethrughs to the to do list
+- remove unnessary permisisons form manifest, trial and error one by one
+  can prob delete - tabs, scripting and active tab, and can remove the content script

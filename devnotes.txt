@@ -1,0 +1,127 @@
+
+OPTIONS.JS
+
+
+// storage.local.get(keys) - weird behaviour difficult to understand:
+// You can't try to grab the entire object ie. "chrome.storage.local.get("allObjects")" - it won't work
+// Chrome takes the object and stores the key value pairs individually, not the object itself
+// So if you want to store multiple seperate objects you would need to wrap them like: allObjects: {all_urls: all_urls_data, other_object: other_object_data}
+// Then you can do: chrome.storage.local.get("all_urls") - to get back an object: {all_urls: all_urls_data}
+
+
+// From the mozilla documents for browser.storage.local.get()'s arguments:
+// keys: A key (string) or keys (an array of strings, or an object specifying default values) to identify the item(s) to be retrieved from storage. 
+// "object specifying default values" -- I was trying to use an object that didn't spicify default values - bugs were v. confusing!
+
+// If you pass an empty object or [empty?] array here, an empty object will be retrieved.
+
+// If you pass null, or an undefined value, the entire storage contents will be retrieved.
+// SO if you want the entire contents of the chrome storage object (ie. allObjects) use: chrome.storage.local.get(null), this will return: 
+// {all_urls: all_urls_data, other_object: other_object_data}
+
+
+// So my data structure when saving a new url will be:
+// allObjects will be a js object of which the first key / value pair will be:
+// key: "urls", value: a sub-object 
+// this sub-object will contain all the url records as keys value pairs.
+// each key of the sub-object will be the url as a string (without "http:" / "https:"). 
+// each value of the sub-object will be the options as an array - [boolean, boolean]
+// individual url records can then be retrived using the url as a string (without "http:" / "https:")
+// so simply: allUrls = chrome.storage.local.get("urls") 
+// then: allUrls["example.com"]
+
+
+
+
+
+
+
+
+SERVICE_WORKER.JS
+
+// chrome.webNavigation.onCompleted.addListener( (details) => {
+//         console.log("nav completed: ", details);
+// });
+// this is firing for every frame in the page, even a blank new tab in chrome has 3 frames
+// there is frameType: "sub_frame" and frameType: "outermost_frame", 
+// seems the outermost_frame just fires once so should be fine to simple filter by this
+// Also it does not fire at all for a in-page renaivigation like onUpdated does,
+// so re-scrolling doesn't occur so there is no need for removing / re addind listener.
+
+// chrome.webNavigation.onCommitted.addListener( (details) => {
+//     if(details.transitionType == "reload"){
+//         console.log("reload")
+//     };
+// });
+// this works well, no mis-triggers.
+// but what is the use case? ie in what situations will the user want to reload
+// should the reload jump back to where the user has scrolled to in the page or to where the url anchor is?
+// also what if they have selected to disable chrome scroll restoration?
+
+// Actually webNavigation.onCompleted also fires for a reload, which is not ideal OR maybe it is ideal, better safe than sorry!
+// Could possibly use onCommitted details.transitionType = reload to cacel out onCompleted's reload trigger
+
+
+
+
+//////
+
+// chrome.tabs.onCreated.addListener((tab) => { console.log("working") });
+// Don't use this as the onCreated event might not get the new URL string ("the tab's URL may not be set at the time this event fired")
+
+// chrome.webNavigation.onHistoryStateUpdated.addListener((e) => {console.log("111", e)});
+// this is also an option using "webNavigation.onHistoryStateUpdated", but doesn't seem reliable
+
+// onUpdated event is best, this way:
+// chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+//     if (changeInfo.status == 'complete' ){
+//         console.log("222")
+//     }
+// });
+
+/////////////// onUpdated info:
+// onUpdated takes a listener callback, listener recieves:
+// tabId - integer.     The ID of the updated tab.
+// changeInfo - object. The properties of the tab that changed.
+// tab - tabs.Tab.      All properties of the tab.
+// changeInfo contains:
+// status - Optional - string.  The status of the tab. Can be either loading or complete.
+// url - Optional - string.     The tab's URL, if it has changed.
+///////////////
+
+
+// chrome.webNavigation.onCreatedNavigationTarget.addListener(function lala3(details){
+//     console.log("created navigation target (can be tab OR window)");
+// });
+// Only fires from:
+// right click -> new tab
+// right click -> new window
+
+// does not fire from a link that opens in the same active tab
+// does not fire from manually opening a tab/window
+// does not fire from opening a bookmark, even in a new tab
+// not very useful
+
+
+// chrome.tabs.onActivated.addListener(function lala2(){
+//     console.log("tab activated"); });
+// This seems to work well but scrolling will not be able to happen in the background,
+// ie if a user opens a page in a new tab in advance before navigating to it
+
+
+
+// Other possible tab listeners:
+// https://developer.chrome.com/docs/extensions/reference/api/tabs#event
+
+// chrome.tabs.onActivated.addListener(
+//     callback: function,
+//   )
+//   Fires when the active tab in a window changes. 
+// Note that the tab's URL may not be set at the time this event fired, but you can listen to onUpdated events so as to be notified when a URL is set.
+
+// chrome.tabs.onCreated.addListener(
+//     callback: function,
+//   )
+//   Fired when a tab is created. 
+// Note that the tab's URL and tab group membership may not be set at the time this event is fired, but you can listen to onUpdated events so as to be notified when a URL is set or the tab is added to a tab group.
+
