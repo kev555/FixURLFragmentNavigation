@@ -25,7 +25,7 @@ async function listURLs(){
             
             // create a html table with the results then add it to the DOM
             let text = "<table border='1'> <th>Url</th>  <th>Disable Auto Scroll </th> <th>Enable Pre Scroll</th> ";
-            for (let x in allURLsRetrieved) {text += "<tr><td>" + x + "</td> <td>" + allURLsRetrieved[x][0] + "</td> <td>" + allURLsRetrieved[x][1] + "</td> </tr>";}
+            for (let x in allURLsRetrieved) {text += "<tr><td>" + "(www.)" + x + "</td> <td>" + allURLsRetrieved[x][0] + "</td> <td>" + allURLsRetrieved[x][1] + "</td> </tr>";}
             text += "</table>";
             document.getElementById("listOfSaved").innerHTML = text;
         }
@@ -95,6 +95,15 @@ async function saveNewURL() {
 
         if (isParsable && correctProtocol){
             console.log("attempting to add the URL");
+
+
+            console.log(1, urlObj.hostname);
+            
+            // firstly remove "www." subdomain if present
+            if (urlObj.hostname.slice(0, 4) === "www.") {
+                urlObj.hostname = urlObj.hostname.slice(4, urlObj.hostname.length);
+                console.log(2, urlObj.hostname)
+            };
             await tryToAdd(urlObj);
         }
 
@@ -102,7 +111,7 @@ async function saveNewURL() {
         console.log("error with parsing the URL entered: ", err)
     }
 
-    async function tryToAdd()
+    async function tryToAdd(urlObj)
     {
         try {
             let allUrls = await chrome.storage.local.get("urls");

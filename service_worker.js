@@ -21,37 +21,14 @@ async function injectFunc(tab)
         //console.log("allUrls : ", allUrls);
         
         var url = new URL(tab.url); // this parsing shouldn't ever fail because it's coming directly from the tab... right?
-
-        // console.log(url);
-
         var hostname = url.hostname;
-        
-        ////// check for the "www." subdomain as it is commonly forgotten OR added unintentionally
-        // the js URL interface will include www. as part of the returned "hostname", so,
-        // use substring to check if hostname has or hasn't got www. at the start, 
-        // perpare both cases based on that, and then check the db for both
 
-        let hostameWithWWW;
-        let hostnameWithoutWWW;
-        let wwwCheck = hostname.slice(0, 3)
+        // remove "www." subdomain if present
+        if (hostname.slice(0, 3) === "www") {
+            hostname = hostname.slice(3, hostname.length);
+        };
 
-        if (wwwCheck === "www.") {
-            hostameWithWWW = hostname;
-            hostnameWithoutWWW = hostname.slice(3, hostname.length);
-        }
-        else {
-            hostnameWithoutWWW = hostname;
-            hostameWithWWW = "www." + hostname;
-        }
-
-        console.log(hostameWithWWW, hostnameWithoutWWW);
-
-        if (allUrls.hasOwnProperty(hostameWithWWW)) {
-            runProg(hostameWithWWW);
-        }
-        if (allUrls.hasOwnProperty(hostnameWithoutWWW)) {
-            runProg(hostnameWithoutWWW);
-        }
+        runProg(hostmane);
 
         function runProg(hostname){
             console.log("URL found!");

@@ -1,6 +1,7 @@
 
 OPTIONS.JS
 
+Explination:
 
 // storage.local.get(keys) - weird behaviour difficult to understand:
 // You can't try to grab the entire object ie. "chrome.storage.local.get("allObjects")" - it won't work
@@ -35,9 +36,45 @@ OPTIONS.JS
 
 
 
-
+OLD code
 
 SERVICE_WORKER.JS
+
+
+// // check for the "www." subdomain as it is commonly forgotten OR added unintentionally
+// // the js URL interface will include www. as part of the returned "hostname", so,
+// // use substring to check if hostname has or hasn't got www. at the start, 
+// // perpare both cases based on that, and then check the db for both
+
+// let hostameWithWWW;
+// let hostnameWithoutWWW;
+// let wwwCheck = hostname.slice(0, 3)
+
+// if (wwwCheck === "www.") {
+//     hostameWithWWW = hostname;
+//     hostnameWithoutWWW = hostname.slice(3, hostname.length);
+// }
+// else {
+//     hostnameWithoutWWW = hostname;
+//     hostameWithWWW = "www." + hostname;
+// }
+
+// console.log(hostameWithWWW, hostnameWithoutWWW);
+
+// if (allUrls.hasOwnProperty(hostameWithWWW)) {
+//     runProg(hostameWithWWW);
+// }
+// if (allUrls.hasOwnProperty(hostnameWithoutWWW)) {
+//     runProg(hostnameWithoutWWW);
+// }
+
+
+
+
+
+
+
+
 
 // chrome.webNavigation.onCompleted.addListener( (details) => {
 //         console.log("nav completed: ", details);

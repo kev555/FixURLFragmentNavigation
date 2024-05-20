@@ -11,11 +11,9 @@
     },
     "options_page": "options.html",
     "permissions": [
-        "activeTab",
         "scripting",
         "webNavigation",
-        "storage",
-        "tabs"
+        "storage"
     ],
     "content_scripts": [{
       "js": ["content_script.js"],
