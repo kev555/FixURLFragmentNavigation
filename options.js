@@ -58,7 +58,7 @@ async function saveNewURL() {
     // browser.storage.local.set's return value:
     // A Promise that is fulfilled with no arguments if the operation succeeds. 
     // If the operation fails, the promise is rejected with an error message.
-    // ..."fulfilled with no arguments"... does this mean "undefined"?
+    // "fulfilled with no arguments" - does this mean "undefined"?
 
     let urlString = document.getElementById('urlString').value;
     console.log("url entered: ", urlString);

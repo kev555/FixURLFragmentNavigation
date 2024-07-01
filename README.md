@@ -13,7 +13,7 @@ I've encountered some webpages that use this feature which do not scroll to the 
 The naviagtion jumps multiple paragraphs / sections before or after the position of the intended anchor.
 Most notably the official NodeJS docs have this issue on Chrome.
 
-To replicat go to a section such as: https://nodejs.org/api/http.html. 
+To replicate go to a section such as: https://nodejs.org/api/http.html. 
 And then click one of the navigation links such as Class: http.ClientRequest or Class: http.Server.
 It will jump usually to multiple sections before the target.
 I've personally found this very frustrating while using using and learning the api.

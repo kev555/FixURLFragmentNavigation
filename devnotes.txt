@@ -1,76 +1,43 @@
-
-OPTIONS.JS
-
-Explination:
-
-// storage.local.get(keys) - weird behaviour difficult to understand:
-// You can't try to grab the entire object ie. "chrome.storage.local.get("allObjects")" - it won't work
-// Chrome takes the object and stores the key value pairs individually, not the object itself
-// So if you want to store multiple seperate objects you would need to wrap them like: allObjects: {all_urls: all_urls_data, other_object: other_object_data}
-// Then you can do: chrome.storage.local.get("all_urls") - to get back an object: {all_urls: all_urls_data}
-
-
-// From the mozilla documents for browser.storage.local.get()'s arguments:
-// keys: A key (string) or keys (an array of strings, or an object specifying default values) to identify the item(s) to be retrieved from storage. 
-// "object specifying default values" -- I was trying to use an object that didn't spicify default values - bugs were v. confusing!
-
-// If you pass an empty object or [empty?] array here, an empty object will be retrieved.
-
-// If you pass null, or an undefined value, the entire storage contents will be retrieved.
-// SO if you want the entire contents of the chrome storage object (ie. allObjects) use: chrome.storage.local.get(null), this will return: 
-// {all_urls: all_urls_data, other_object: other_object_data}
-
-
-// So my data structure when saving a new url will be:
-// allObjects will be a js object of which the first key / value pair will be:
-// key: "urls", value: a sub-object 
-// this sub-object will contain all the url records as keys value pairs.
-// each key of the sub-object will be the url as a string (without "http:" / "https:"). 
-// each value of the sub-object will be the options as an array - [boolean, boolean]
-// individual url records can then be retrived using the url as a string (without "http:" / "https:")
-// so simply: allUrls = chrome.storage.local.get("urls") 
-// then: allUrls["example.com"]
+Note 1:
+disabling scroll restoratioin:
+this uses only the Window.history part of the standarized js Web API, so will work across browsers easily
+https://developer.mozilla.org/en-US/docs/Web/API/Window/history
+And it doesn't require any additional permissions in the manifest as it's not part of the extensioins API
+https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API
 
 
 
 
 
+Options.js explination:
 
-OLD code
-
-SERVICE_WORKER.JS
-
-
-// // check for the "www." subdomain as it is commonly forgotten OR added unintentionally
-// // the js URL interface will include www. as part of the returned "hostname", so,
-// // use substring to check if hostname has or hasn't got www. at the start, 
-// // perpare both cases based on that, and then check the db for both
-
-// let hostameWithWWW;
-// let hostnameWithoutWWW;
-// let wwwCheck = hostname.slice(0, 3)
-
-// if (wwwCheck === "www.") {
-//     hostameWithWWW = hostname;
-//     hostnameWithoutWWW = hostname.slice(3, hostname.length);
-// }
-// else {
-//     hostnameWithoutWWW = hostname;
-//     hostameWithWWW = "www." + hostname;
-// }
-
-// console.log(hostameWithWWW, hostnameWithoutWWW);
-
-// if (allUrls.hasOwnProperty(hostameWithWWW)) {
-//     runProg(hostameWithWWW);
-// }
-// if (allUrls.hasOwnProperty(hostnameWithoutWWW)) {
-//     runProg(hostnameWithoutWWW);
-// }
+storage.local.get(keys) - weird behaviour difficult to understand:
+You can't try to grab the entire object ie. "chrome.storage.local.get("allObjects")" - it won't work
+Chrome takes the object and stores the key value pairs individually, not the object itself
+So if you want to store multiple seperate objects you would need to wrap them like: allObjects: {all_urls: all_urls_data, other_object: other_object_data}
+Then you can do: chrome.storage.local.get("all_urls") - to get back an object: {all_urls: all_urls_data}
 
 
+From the mozilla documents for browser.storage.local.get()'s arguments:
+keys: A key (string) or keys (an array of strings, or an object specifying default values) to identify the item(s) to be retrieved from storage. 
+"object specifying default values" -- I was trying to use an object that didn't spicify default values - bugs were v. confusing!
+
+If you pass an empty object or [empty?] array here, an empty object will be retrieved.
+
+If you pass null, or an undefined value, the entire storage contents will be retrieved.
+SO if you want the entire contents of the chrome storage object (ie. allObjects) use: chrome.storage.local.get(null), this will return: 
+{all_urls: all_urls_data, other_object: other_object_data}
 
 
+So my data structure when saving a new url will be:
+allObjects will be a js object of which the first key / value pair will be:
+key: "urls", value: a sub-object 
+this sub-object will contain all the url records as keys value pairs.
+each key of the sub-object will be the url as a string (without "http:" / "https:"). 
+each value of the sub-object will be the options as an array - [boolean, boolean]
+individual url records can then be retrived using the url as a string (without "http:" / "https:")
+so simply: allUrls = chrome.storage.local.get("urls") 
+then: allUrls["example.com"]
 
 
 
@@ -161,4 +128,62 @@ SERVICE_WORKER.JS
 //   )
 //   Fired when a tab is created. 
 // Note that the tab's URL and tab group membership may not be set at the time this event is fired, but you can listen to onUpdated events so as to be notified when a URL is set or the tab is added to a tab group.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OLD code
+
+SERVICE_WORKER.JS
+
+
+
+OLD CODE:
+
+// if there was no anchor jump back to the top of the page after loading with single "#" (is there a better way!!)
+// for some reason a single # will not be added unless there is already a hash value, so add a dummy value first (##)
+//document.location.hash = "##";
+//document.location.hash = "#";
+
+
+
+
+// // check for the "www." subdomain as it is commonly forgotten OR added unintentionally
+// // the js URL interface will include www. as part of the returned "hostname", so,
+// // use substring to check if hostname has or hasn't got www. at the start, 
+// // perpare both cases based on that, and then check the db for both
+
+// let hostameWithWWW;
+// let hostnameWithoutWWW;
+// let wwwCheck = hostname.slice(0, 3)
+
+// if (wwwCheck === "www.") {
+//     hostameWithWWW = hostname;
+//     hostnameWithoutWWW = hostname.slice(3, hostname.length);
+// }
+// else {
+//     hostnameWithoutWWW = hostname;
+//     hostameWithWWW = "www." + hostname;
+// }
+
+// console.log(hostameWithWWW, hostnameWithoutWWW);
+
+// if (allUrls.hasOwnProperty(hostameWithWWW)) {
+//     runProg(hostameWithWWW);
+// }
+// if (allUrls.hasOwnProperty(hostnameWithoutWWW)) {
+//     runProg(hostnameWithoutWWW);
+// }
+
+
 
